@@ -54,7 +54,8 @@ import qs from "qs";
 export default {
   data() {
     return {
-            search: "",
+      list:[],
+      search: "",
       searchType: "1",
       songs: [],
       loading: false,
@@ -76,6 +77,7 @@ export default {
   },
   methods: {
     insertPlayingList(sid){
+      console.log(sid)
       this.$emit('insertList',sid);
     },
     turnPage(pageNum) {
@@ -114,11 +116,23 @@ export default {
 
       this.turnPage(this.currentPage + 1);
       this.loading = false;
+    },
+    getList(vals){
+      this.$axios
+        .get(
+          "http://localhost:8080/song/getSongs?list="+vals,
+        )
+        .then(res => {
+          this.songs = res.data;
+        })
+        .catch(err => {
+          console.log(err);
+        });
     }
   },
   mounted() {
-    this.turnPage(1, "", "");
-    this.songs;
+    this.list = JSON.parse(localStorage.getItem("list"));
+    this.getList(this.list)
   }
 };
 </script>

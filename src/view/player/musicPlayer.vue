@@ -7,17 +7,20 @@
     </div>
     <div class="bg2"></div>
     <div class="main-part">
-      <div class="title"><span>Music</span> <span style="color: #ff9102;">Player</span></div>
+      <div class="title">
+        <span>Music</span>
+        <span style="color: #ff9102;">Player</span>
+      </div>
       <div class="select-part">
-        <el-button class="selctbt" @click="toAllMusic">所有音乐</el-button>
+        <el-button class="selctbt" @click="toPlaying">正在播放</el-button>
         <!-- <el-button class="selctbt">我的最爱</el-button> -->
         <el-button class="selctbt" @click="toLastListened">最近播放</el-button>
-        <el-button class="selctbt" @click="toSearchMusic">搜索</el-button>
+        <el-button class="selctbt" @click="toPlayList">播放列表</el-button>
       </div>
       <div class="view-part">
-        <el-row style="height:100%">
-          <el-col :span="19">
-            <router-view @insertList="insertPlayingList"></router-view>
+        <el-row>
+          <el-col :span="19"  style="height:640px">
+            <router-view @insertList="insertPlayingList" :originLyric="lyric" :time="currentTime"></router-view>
           </el-col>
           <el-col :span="3">
             <div v-if="song.pic!=null" style="width:250px">
@@ -302,18 +305,17 @@
   </div>
 </template>
 <script>
-import allMusicVue from "../player/allMusic.vue";
-
+import playing from "../player/playing.vue";
 let audio = "";
 export default {
   components: {
-    allMusicVue
+    playing,
   },
   data() {
     return {
       cover: require("../../assets/cd.png"),
       playing: false, // 播放状态
-      currentIndex:"",
+      currentIndex: "",
       index: 0, // 当前播放歌曲在列表中的下标
       currentTime: "00:00", // 当前播放时间
       totalTime: "00:00", // 总播放时间
@@ -327,11 +329,11 @@ export default {
       error: "", // 报错内容
       playType: 1, // 播放类型：1-列表循环，2-随机播放，3-单曲循环
       listShow: false, // 播放列表是否展示
-
+      lyric:'',
       song: {
         // 当前播放歌曲信息
       },
-
+      list:[],
       songList: [
         // 歌曲列表
       ]
@@ -340,28 +342,51 @@ export default {
   mounted() {
     // audio的DOM结构获取需要在mounted中，在created中话会变成 <audio :src="song.url" id="audio" controls autoplay></audio>
     audio = document.getElementById("audio");
-              this.getData();
-          this.setPageListen();
+    this.getData();
+    this.setPageListen();
+    this.list = JSON.parse(localStorage.getItem("list"));
+    this.getList(this.list)
   },
   methods: {
+    getList(vals){
+      this.$axios
+        .get(
+          "http://localhost:8080/song/getSongs?list="+vals,
+        )
+        .then(res => {
+          this.songList = res.data;
+          this.song=this.songList[0]
+          this.getLyric(this.song.id)
+          setTimeout(() => {
+            this.playing = true;
+            audio.play();
+          }, 1000);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
     insertPlayingList(sid) {
+      this.lyric='';
+      this.getLyric(sid);
       this.$axios
         .get("http://localhost:8080/song/getSongById?id=" + sid)
         .then(res => {
           if (this.songList.length != 0) {
             for (var i in this.songList) {
-              if (res.data.id == this.songList[i].id){
-                this.currentIndex=i
-                break
+              if (res.data.id == this.songList[i].id) {
+                this.currentIndex = i;
+                break;
               }
-              if( i == this.songList.length-1){
-              this.songList.push(res.data);
-              this.currentIndex=this.songList.length-1
+              if (i == this.songList.length - 1) {
+                this.songList.push(res.data);
+                this.currentIndex = this.songList.length - 1;
               }
             }
-          }if (this.songList.length == 0){
+          }
+          if (this.songList.length == 0) {
             this.songList.push(res.data);
-            this.currentIndex=0
+            this.currentIndex = 0;
           }
           this.song = res.data;
           setTimeout(() => {
@@ -382,17 +407,27 @@ export default {
           console.log(err);
         });
     },
+    getLyric(sid) {
+      this.$axios
+        .get("http://localhost:8080/song/getLyric?id=" + sid)
+        .then(res => {
+          this.lyric = res.data;
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
     //所有音乐界面
-    toAllMusic() {
-      this.$router.push({ path: "/allMusic" });
+    toPlaying() {
+      this.$router.push({ path: "/musicPlayer/playing" });
     },
     //搜索界面
-    toSearchMusic(){
-      this.$router.push({ path: "/searchMusic" });
+    toPlayList() {
+      this.$router.push({ path: "/musicPlayer/playList" });
     },
     //最近播放界面
     toLastListened() {
-      this.$router.push({ path: "/lastListened" });
+      this.$router.push({ path: "/musicPlayer/lastListened" });
     },
     // 获取数据，并放入当前播放列表
     getData() {
@@ -675,6 +710,8 @@ export default {
       this.song = li;
       this.index = i;
       this.playing = true;
+      this.lyric='';
+      this.getLyric(this.song.id);
       setTimeout(() => {
         audio.play();
       }, 100);

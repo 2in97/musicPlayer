@@ -19,13 +19,21 @@
             </el-row>
           </div>
           <div class="infinite-list-wrapper" style="overflow:auto;height: 439px">
-            <ul class="list" v-infinite-scroll="load" infinite-scroll-disabled="disabled"  :infinite-scroll-distance="1">
-              <li v-for="(song,index) in songs" class="list-item" :key="index"
-              :class="{'clickBg':index==clickIndex,'hoverBg':index==hoverIndex}"
-              @dblclick="insertPlayingList(song.id,index)"
-            @click="clickIndex = index"
-            @mouseover="hoverIndex = index"
-            @mouseout="hoverIndex = -1"
+            <ul
+              class="list"
+              v-infinite-scroll="load"
+              infinite-scroll-disabled="disabled"
+              :infinite-scroll-distance="1"
+            >
+              <li
+                v-for="(song,index) in songs"
+                class="list-item"
+                :key="index"
+                :class="{'clickBg':index==clickIndex,'hoverBg':index==hoverIndex}"
+                @dblclick="insertPlayingList(song.id,index)"
+                @click="clickIndex = index"
+                @mouseover="hoverIndex = index"
+                @mouseout="hoverIndex = -1"
               >
                 <el-row>
                   <el-col :span="1">{{index+1}}</el-col>
@@ -62,7 +70,7 @@ export default {
       totalPage: "",
       currentPage: "",
       hoverIndex: -1, //表示当前hover的是第几个li 初始为 -1 或 null 不能为0 0表示第一个li
-	    clickIndex: -1, //表示当前点击的是第几个li 初始为 -1 或 null 不能为0 0表示第一个li
+      clickIndex: -1 //表示当前点击的是第几个li 初始为 -1 或 null 不能为0 0表示第一个li
     };
   },
   computed: {
@@ -74,8 +82,8 @@ export default {
     }
   },
   methods: {
-    insertPlayingList(sid){
-      this.$emit('insertList',sid);
+    insertPlayingList(sid) {
+      this.$emit("insertList", sid);
     },
     turnPage(pageNum) {
       this.$axios
@@ -94,10 +102,12 @@ export default {
           console.log(err);
         });
       this.$axios
-        .get("http://localhost:8080/song/getPage?searchType=" +
+        .get(
+          "http://localhost:8080/song/getPage?searchType=" +
             this.searchType +
             "&search=" +
-            this.search)
+            this.search
+        )
         .then(res => {
           this.page = res.data;
           this.totalPage = this.page.pageTotal;
@@ -120,14 +130,14 @@ export default {
 };
 </script>
 <style scoped>
-.hoverBg{
-	background:  rgba(226, 226, 226, 0.1);
+.hoverBg {
+  background: rgba(226, 226, 226, 0.1);
   color: #fff;
-	}
-	.clickBg{
-	background:  rgba(0, 0, 0, 0.3);
-	color: #fff;
-	}
+}
+.clickBg {
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
 ::-webkit-scrollbar {
   background-color: rgba(0, 0, 0, 0.3);
   width: 5px;
@@ -190,5 +200,11 @@ export default {
 }
 .table-center {
   padding-left: 50px;
+}
+ul {
+  padding-left: 0px;
+}
+ul li {
+  list-style: none !important;
 }
 </style>

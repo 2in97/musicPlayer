@@ -70,7 +70,7 @@ export default {
     login() {
       this.$axios
         .post(
-          "api/user/login",
+          "http://localhost:8080/admin/login",
           qs.stringify({
             username: this.ruleForm.username,
             password: this.ruleForm.password
@@ -85,8 +85,8 @@ export default {
           console.log(res.data);
           if(res.data){
           // localStorage.setItem("user", JSON.stringify(res.data));
-          sessionStorage.setItem("user", res.data);
-          this.$router.push({ path: "/uploadMusic" });
+          sessionStorage.setItem("token", res.data);
+          this.$router.push({ path: "/songManage" });
           }
           else{
             this.$message.error("账号或密码错误");
@@ -155,7 +155,10 @@ export default {
 }
 .title1 {
   font: 30px bold;
-  color:white;
+  color: transparent;
+  -webkit-background-clip:text;
+  background-image: linear-gradient(135deg, rgb(9, 112, 138), rgb(255, 255, 255));
+
 }
 .title2 {
   font-size: 20px;
